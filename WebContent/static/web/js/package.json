@@ -1,0 +1,8 @@
+{
+	"family": "trp",
+	"description": "业务js",
+	"spm": {
+		"idleading": "trp/js/",
+		"output": ["**/*.js"]
+	}
+}

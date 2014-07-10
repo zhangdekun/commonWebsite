@@ -1,0 +1,10 @@
+{
+	"name": "html5shiv",
+	"family": "gallery",
+	"version": "3.7.0",
+	"description": "This script is the defacto way to enable use of HTML5 sectioning elements in legacy Internet Explorer.",
+	"homepage": "http://paulirish.com/2011/the-history-of-the-html5-shiv/",
+	"spm": {
+    	"output": ["html5shiv.js"]
+	}
+}

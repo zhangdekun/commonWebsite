@@ -1,0 +1,11 @@
+{
+	"name": "dialog",
+	"family": "gallery",
+	"version": "6.0.0",
+	"description": "经典的网页对话框组件，内外皆用心雕琢",
+	"homepage": "https://github.com/aui/artDialog",
+	"spm": {
+    	"alias": {"jquery": "jquery"},
+    	"output": ["dialog.js"]
+	}
+}

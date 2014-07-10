@@ -1,0 +1,10 @@
+{
+	"name": "respond",
+	"family": "gallery",
+	"version": "1.4.2",
+	"description": "A fast & lightweight polyfill for min/max-width CSS3 Media Queries (for IE 6-8, and more)",
+	"homepage": "https://github.com/scottjehl/Respond",
+	"spm": {
+    	"output": ["respond.js"]
+	}
+}

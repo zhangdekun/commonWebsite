@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+    <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dao.remoteDomain.RemotePTDAO">
+	<!-- 像1169大平台这种最顶层的数据，他们的存储方式和他们的下层平级，需要处理 -->
+	<select id="getRootSubs" resultType="dao.remoteDomain.model.PtsvDim"
+		parameterType="map">
+		SELECT * FROM DM_CS.PTSV_DIM WHERE
+		PT_CODE IS null AND
+		ORG_TYPE = #{org_type} AND PTSV_CODE !=#{ptsv_code}
+	</select>
+	<select id="getNormSubs" resultType="dao.remoteDomain.model.PtsvDim"
+		parameterType="map">
+		SELECT * FROM DM_CS.PTSV_DIM WHERE
+		ORG_TYPE = #{org_type}
+		AND PT_CODE =#{ptsv_code}
+	</select>
+	<select id="getOne" resultType="dao.remoteDomain.model.PtsvDim"
+		parameterType="string">
+		SELECT * FROM DM_CS.PTSV_DIM WHERE PTSV_CODE = #{code}
+	</select>
+	<!-- 获得ptsv的指标数据 （指标是经过筛选后的s） -->
+	<select id="getPtsvInfo" resultType="dao.remoteDomain.model.PtsvInfo"
+		parameterType="map">
+		SELECT
+		DISTINCT
+		ND.NORM_NAME,PD.PTSV_CODE,PD.PTSV_NAME,ND.NORM_CODE,PF.PERIOD_ID,PF.ACNT_VALUE_C,PF.ACNT_VALUE_D,PF.SNRO_CODE,PF.VERS_CODE
+		FROM DM_CS.PT_PER_INFO_FCT PF,DM_CS.PTSV_DIM PD,DM_CS.NORM_DIM ND
+		WHERE PF.ACNT_CODE = ND.NORM_CODE AND PF.PT_CODE=PD.PTSV_CODE
+		AND
+		PF.PERIOD_ID = #{period_id} AND PD.PTSV_CODE=#{ptsv_code}
+		AND
+		ND.NORM_CODE IN (
+		<foreach collection="norm_codes" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+	</select>
+	<!-- 获得ptsv在一段时期内的指标数据 （指标是经过筛选后的并且区分版本（年累，月累。。）） -->
+	<select id="getPtsvInfoByPeriods" resultType="dao.remoteDomain.model.PtsvInfo"
+		parameterType="map">
+		SELECT
+		DISTINCT
+		ND.NORM_NAME,PD.PTSV_CODE,PD.PTSV_NAME,ND.NORM_CODE,PF.PERIOD_ID,PF.ACNT_VALUE_C,PF.ACNT_VALUE_D,PF.SNRO_CODE,PF.VERS_CODE
+		FROM DM_CS.PT_PER_INFO_FCT PF,DM_CS.PTSV_DIM PD,DM_CS.NORM_DIM ND
+		WHERE PF.ACNT_CODE = ND.NORM_CODE AND PF.PT_CODE=PD.PTSV_CODE
+		AND
+		PF.PERIOD_ID IN (
+		<foreach collection="period_ids" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+		AND PD.PTSV_CODE=#{ptsv_code} AND PF.VERS_CODE=#{vers_code}
+		AND
+		ND.NORM_CODE IN (
+		<foreach collection="norm_codes" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+		ORDER BY PF.PERIOD_ID
+	</select>
+	<!-- 查找有数据的最新日期 -->
+	<select id="getPeriodId" resultType="Integer" parameterType="map">
+		SELECT PF.PERIOD_ID FROM DM_CS.PT_PER_INFO_FCT PF,DM_CS.PTSV_DIM PD
+		WHERE PF.PT_CODE=PD.PTSV_CODE AND PD.PTSV_CODE=#{ptsv_code}
+		AND
+		PF.ACNT_CODE IN (
+		<foreach collection="norm_codes" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+		AND PF.PERIOD_ID BETWEEN #{period_start} AND #{period_end}
+		<![CDATA[ AND ROWNUM<=1 ]]>
+		ORDER BY PF.PERIOD_ID DESC
+	</select>
+	<!-- 查找在一段时间内的有数据的最新日期 -->
+	<select id="getLastPeriodId" resultType="Integer" parameterType="map">
+		SELECT PF.PERIOD_ID FROM DM_CS.PT_PER_INFO_FCT PF,DM_CS.PTSV_DIM PD
+		WHERE PF.PT_CODE=PD.PTSV_CODE AND PD.PTSV_CODE=#{ptsv_code}
+		AND
+		PF.ACNT_CODE IN (
+		<foreach collection="norm_codes" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+		<![CDATA[ AND ROWNUM<=1 ]]>
+		ORDER BY PF.PERIOD_ID DESC
+	</select>
+</mapper>

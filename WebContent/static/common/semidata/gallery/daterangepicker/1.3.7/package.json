@@ -1,0 +1,13 @@
+{
+	"name": "daterangepicker",
+	"family": "gallery",
+	"version": "1.3.7",
+	"description": "Date Range Picker for Bootstrap",
+	"spm": {
+    	"alias": {
+    		"jquery": "jquery",
+    		"moment": "moment"
+		},
+    	"output": ["daterangepicker.js"]
+	}
+}

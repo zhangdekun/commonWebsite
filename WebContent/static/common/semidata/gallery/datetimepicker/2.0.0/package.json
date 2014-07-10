@@ -1,0 +1,11 @@
+{
+	"name": "datetimepicker",
+	"family": "gallery",
+	"version": "2.0.0",
+	"description": "Bootstrap日期和时间表单组件",
+	"homepage": "http://www.bootcss.com/p/bootstrap-datetimepicker/",
+	"spm": {
+		"alias": {"jquery": "jquery"},
+    	"output": ["datetimepicker.js","datetimepicker.css"]
+	}
+}

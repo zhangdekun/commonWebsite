@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+    <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dao.localDomain.LocalPTDAO">
+
+	<select id="getScatterMetaList" resultType="dao.localDomain.model.ScatterMeta">
+		select * from SCATTER_META ORDER BY XY_ORDER
+	</select>
+	<select id="getScatterMetaMaxId" resultType="String">
+		select max(s_code) from scatter_meta
+	</select>
+
+	<!-- 二维点阵 纵坐标 -->
+	<select id="getFirstLevelScatterMetaY" resultType="dao.localDomain.model.ScatterMeta"
+		parameterType="string">
+		SELECT * FROM SCATTER_META WHERE
+		PS_CODE IS NULL AND XY_TYPE = 1 AND PTSV_TYPE = #{ptsv_type} ORDER BY
+		XY_ORDER ASC
+	</select>
+	<!-- 二维点阵横坐标 -->
+	<select id="getFirstLevelScatterMetaX" resultType="dao.localDomain.model.ScatterMeta"
+		parameterType="string">
+		SELECT * FROM SCATTER_META WHERE
+		PS_CODE IS NULL AND XY_TYPE = 0 AND PTSV_TYPE = #{ptsv_type} ORDER BY
+		XY_ORDER ASC
+	</select>
+	<select id="getScatterMetaChildren" resultType="dao.localDomain.model.ScatterMeta"
+		parameterType="string">
+		SELECT * FROM SCATTER_META WHERE
+		PS_CODE IS NOT NULL AND PTSV_TYPE = #{ptsv_type} ORDER BY XY_ORDER ASC
+	</select>
+	<!-- 二维点阵 横纵坐标的子坐标 -->
+	<select id="getScatterMetaByPid" resultType="dao.localDomain.model.ScatterMeta"
+		parameterType="string">
+		SELECT * FROM SCATTER_META WHERE PS_CODE =#{s_code}
+		ORDER BY XY_ORDER ASC
+	</select>
+	<select id="getAreas" resultType="vo.AreaItem" parameterType="string">
+		SELECT SMA.AREA_COLOR AS color,SMRA.S_CODE_X AS x_code,SMRA.S_CODE_Y
+		AS y_code
+		FROM SCATTER_META_AREA SMA,SCATTER_META_RELATED_AREA SMRA
+		WHERE SMA.ID=SMRA.AREA_ID
+		AND SMRA.S_CODE_X IN (
+		SELECT SM.S_CODE FROM SCATTER_META SM WHERE SM.XY_TYPE=0 AND
+		SM.PTSV_TYPE=#{ptsv_type}
+		)
+		AND SMRA.S_CODE_Y IN (
+		SELECT SM.S_CODE FROM SCATTER_META SM WHERE SM.XY_TYPE=1 AND
+		SM.PTSV_TYPE=#{ptsv_type}
+		)
+	</select>
+	<!-- 二维点阵中的点集合 -->
+	<select id="getScatterDatas" resultType="dao.localDomain.model.ScatterEntry"
+		parameterType="map">
+		SELECT * FROM SCATTER_ENTRY WHERE ORG_TYPE=#{org_type} AND
+		PERIOD_ID=#{period_id} AND PTSV_CODE IN (
+		<foreach collection="ptsv_codes" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+	</select>
+	<select id="getPieDatas" resultType="vo.PieItem" parameterType="map">
+		SELECT COUNT(DISTINCT SE.PTSV_CODE) AS num ,SR.AREA_COLOR AS color
+		,SE.SNRO_CODE AS type FROM SCATTER_ENTRY SE LEFT JOIN
+		(
+		SELECT
+		SMA.AREA_COLOR,SMRA.S_CODE_X,SMRA.S_CODE_Y
+		FROM SCATTER_META_RELATED_AREA SMRA LEFT JOIN SCATTER_META_AREA SMA
+		ON
+		SMRA.AREA_ID=SMA.ID
+		) SR ON SE.S_CODE_X = SR.S_CODE_X AND SE.S_CODE_Y =
+		SR.S_CODE_Y
+		WHERE SE.PTSV_CODE IN (
+		<foreach collection="ptsv_codes" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+		AND SE.ORG_TYPE=#{org_type} AND SE.PERIOD_ID = #{period_id}
+		GROUP BY
+		SR.AREA_COLOR,SE.SNRO_CODE
+	</select>
+	<!-- 获得经过筛选后的指标 -->
+	<select id="getPtsvDims" resultType="dao.localDomain.model.PtsvDimSub"
+		parameterType="string">
+		SELECT * FROM PTSV_DIM_SUB WHERE PTSV_CODE=#{ptsv_code} ORDER BY CODE_ORDER
+	</select>
+	<delete id="deleteByPtsvCodeAndPeriod" parameterType="map">
+		Delete FROM SCATTER_ENTRY WHERE PTSV_CODE IN (
+		<foreach collection="ptsv_codes" item="item" separator=",">
+			#{item}
+		</foreach>
+		) AND
+		PERIOD_ID = #{period_id}
+	</delete>
+	<insert id="insertScatterEntrys" parameterType="dao.localDomain.model.ScatterEntry">
+		INSERT INTO
+		SCATTER_ENTRY(PTSV_CODE,ORG_TYPE,SNRO_CODE,PERIOD_ID,S_CODE_Y,S_CODE_X,PTSV_NAME)
+
+		<foreach collection="list" item="item" separator="union all">
+			select
+			#{item.ptsv_code},#{item.org_type},#{item.snro_code},#{item.period_id},#{item.s_code_y},#{item.s_code_x},#{item.ptsv_name,jdbcType=VARCHAR}
+			from dual
+		</foreach>
+	</insert>
+	<insert id="batchInsertScatterMeta" parameterType="dao.localDomain.model.ScatterMeta">
+		INSERT INTO
+		SCATTER_META(NAME,PS_CODE,XY_TYPE,XY_ORDER,S_CODE,PTSV_TYPE,AREA_ID)
+		<foreach collection="list" item="item" separator="union all">
+			select
+			#{item.name},#{item.ps_code,jdbcType=VARCHAR},#{item.xy_type},#{item.xy_order},#{item.s_code},#{item.ptsv_type},#{item.area_id,jdbcType=VARCHAR}
+			from dual
+		</foreach>
+
+	</insert>
+	<insert id="batchInsertAreaRelate" parameterType="dao.localDomain.model.AreaRelate">
+		INSERT INTO SCATTER_META_RELATED_AREA(AREA_ID,S_CODE_X,S_CODE_Y)
+
+		<foreach collection="list" item="item" separator="union all">
+			select #{item.area_id},#{item.s_code_x},#{item.s_code_y}
+			from dual
+		</foreach>
+
+	</insert>
+	<update id="batchUpdateAreaRelate" parameterType="dao.localDomain.model.AreaRelate">
+		<foreach collection="list" item="item" open="begin" close="end;"
+			separator=";">
+			UPDATE SCATTER_META_RELATED_AREA
+			<set>
+				AREA_ID = #{item.area_id}
+			</set>
+			WHERE S_CODE_X = #{item.s_code_x},S_CODE_Y=#{item.s_code_y}
+		</foreach>
+	</update>
+	<update id="batchUpdateScatterMeta" parameterType="dao.localDomain.model.ScatterMeta">
+		<foreach collection="list" item="item" open="begin" close=";end;"
+			separator=";">
+			UPDATE SCATTER_META
+			<set>
+				NAME=#{item.name},
+				AREA_ID =#{item.area_id,jdbcType=VARCHAR},
+				XY_ORDER = #{item.xy_order}
+			</set>
+			WHERE S_CODE = #{item.s_code}
+		</foreach>
+	</update>
+	<delete id="deleteScatterMetaByPtsvType" parameterType="map">
+		DELETE FROM SCATTER_META WHERE S_CODE NOT IN (
+		<foreach collection="s_codes" item="item" separator=",">
+			(#{item})
+		</foreach>
+		) AND PTSV_TYPE = #{ptsv_type}
+	</delete>
+</mapper>

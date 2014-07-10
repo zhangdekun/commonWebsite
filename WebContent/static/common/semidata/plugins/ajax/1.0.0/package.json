@@ -1,0 +1,13 @@
+{
+	"name": "ajax",
+	"family": "plugins",
+	"version": "1.0.0",
+	"description": "提供 ajax，ajaxP，ajaxSubmit，ajaxSubmitP，处理返回的 json",
+	"spm": {
+		"alias": {
+			"jquery": "jquery",
+			"parsejson": "parsejson"
+		},
+		"output": ["ajax.js"]
+	}
+}

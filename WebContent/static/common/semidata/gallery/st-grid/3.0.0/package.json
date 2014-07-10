@@ -1,0 +1,10 @@
+{
+	"name": "st-grid",
+	"family": "gallery",
+	"version": "3.0.0",
+	"description": "Table Grid Library v3.0",
+	"spm": {
+    	"alias": {"jquery": "jquery"},
+    	"output": ["st-grid.js"]
+	}
+}

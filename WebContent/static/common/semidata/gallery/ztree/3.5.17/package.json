@@ -1,0 +1,11 @@
+{
+	"name": "ztree",
+	"family": "gallery",
+	"version": "3.5.17",
+	"description": "依靠 jQuery 实现的多功能 树插件",
+	"homepage": "http://www.ztree.me",
+	"spm": {
+		"alias": {"jquery": "jquery"},
+    	"output": ["ztree.js","zTreeStyle.css","img/**"]
+	}
+}
